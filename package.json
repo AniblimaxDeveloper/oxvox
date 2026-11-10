@@ -1,0 +1,23 @@
+{
+  "name": "oxvox",
+  "version": "1.0.0",
+  "description": "OXVOX Legal System Manager & Remote Admin",
+  "main": "src/server.js",
+  "bin": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "build": "pkg . --targets node18-linux-x64,node18-win-x64,node18-macos-x64 --out-path dist"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "basic-auth": "^2.0.1"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1"
+  },
+  "pkg": {
+    "assets": [
+      "src/public/**/*"
+    ]
+  }
+}

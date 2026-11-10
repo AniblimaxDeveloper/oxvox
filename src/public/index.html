@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OXVOX Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        h1 { color: #38bdf8; border-bottom: 2px solid #38bdf8; padding-bottom: 10px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .card { background: #1e293b; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .card h2 { margin-top: 0; color: #94a3b8; font-size: 16px; }
+        pre { background: #000; color: #10b981; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        input[type="text"] { width: calc(100% - 90px); padding: 10px; border-radius: 5px; border: none; background: #334155; color: white; }
+        button { padding: 10px 20px; background: #38bdf8; border: none; border-radius: 5px; color: #0f172a; font-weight: bold; cursor: pointer; }
+        button:hover { background: #0ea5e9; }
+        .file-list { list-style: none; padding: 0; max-height: 200px; overflow-y: auto; }
+        .file-list li { padding: 5px 0; border-bottom: 1px solid #334155; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ OXVOX System Manager</h1>
+        <div class="grid">
+            <div class="card">
+                <h2>Informasi Sistem</h2>
+                <div id="sys-info">Memuat...</div>
+            </div>
+            <div class="card">
+                <h2>Terminal Lokal</h2>
+                <input type="text" id="cmd-input" placeholder="Ketik perintah (contoh: dir / ls)" onkeypress="if(event.key==='Enter') runCmd()">
+                <button onclick="runCmd()">Jalankan</button>
+                <pre id="cmd-output">Output...</pre>
+            </div>
+        </div>
+        <div class="card">
+            <h2>File Explorer (Home)</h2>
+            <ul id="file-list" class="file-list">Memuat file...</ul>
+        </div>
+    </div>
+    <script>
+        async function fetchData() {
+            const sys = await (await fetch('/api/system')).json();
+            document.getElementById('sys-info').innerHTML = `
+                <p><b>Hostname:</b> ${sys.hostname}</p>
+                <p><b>OS:</b> ${sys.platform} (${sys.arch})</p>
+                <p><b>CPU:</b> ${sys.cpus} Core</p>
+                <p><b>RAM:</b> ${sys.freemem} / ${sys.totalmem} Free</p>
+                <p><b>User:</b> ${sys.user}</p>
+            `;
+            const files = await (await fetch('/api/files')).json();
+            document.getElementById('file-list').innerHTML = files.files.map(f => `<li>${f.isDir ? '📁' : '📄'} ${f.name} (${(f.size/1024).toFixed(1)} KB)</li>`).join('');
+        }
+        async function runCmd() {
+            const cmd = document.getElementById('cmd-input').value;
+            const out = document.getElementById('cmd-output');
+            out.innerText = "Menjalankan...";
+            const res = await fetch('/api/exec', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: cmd })
+            });
+            const data = await res.json();
+            out.innerText = data.output;
+        }
+        fetchData();
+    </script>
+</body>
+</html>
